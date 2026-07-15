@@ -13,8 +13,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "zustand": "^4.5.5",
-    "@imgly/background-removal": "^1.5.5",
-    "@techstark/opencv-js": "4.10.0-release.1"
+    "@imgly/background-removal": "^1.5.5"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
