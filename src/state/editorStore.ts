@@ -12,6 +12,7 @@ interface EditorState {
   activeTool: ToolId
   showBefore: boolean
   busy: boolean
+  previewOverride: Pixels | null
   current: () => Pixels | null
   load: (p: Pixels) => void
   commit: (next: Pixels) => void
@@ -21,6 +22,7 @@ interface EditorState {
   setTool: (t: ToolId) => void
   setShowBefore: (v: boolean) => void
   setBusy: (v: boolean) => void
+  setPreviewOverride: (p: Pixels | null) => void
 }
 
 export const useEditor = create<EditorState>((set, get) => ({
@@ -29,8 +31,9 @@ export const useEditor = create<EditorState>((set, get) => ({
   activeTool: 'adjust',
   showBefore: false,
   busy: false,
+  previewOverride: null,
   current: () => get().history?.present ?? null,
-  load: (p) => set({ original: p, history: initHistory(p) }),
+  load: (p) => set({ original: p, history: initHistory(p), previewOverride: null }),
   commit: (next) =>
     set((s) => (s.history ? { history: pushHistory(s.history, next) } : {})),
   undo: () => set((s) => (s.history ? { history: undoH(s.history) } : {})),
@@ -40,4 +43,5 @@ export const useEditor = create<EditorState>((set, get) => ({
   setTool: (t) => set({ activeTool: t }),
   setShowBefore: (v) => set({ showBefore: v }),
   setBusy: (v) => set({ busy: v }),
+  setPreviewOverride: (p) => set({ previewOverride: p }),
 }))

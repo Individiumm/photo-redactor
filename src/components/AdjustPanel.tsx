@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEditor } from '../state/editorStore'
+import { Pixels } from '../core/pixels'
 import { AdjustSettings, NEUTRAL_ADJUST, applyAdjustments, autoEnhance } from '../core/adjust'
 
 const FIELDS: { key: keyof AdjustSettings; label: string; min: number }[] = [
@@ -11,14 +12,42 @@ const FIELDS: { key: keyof AdjustSettings; label: string; min: number }[] = [
 ]
 
 export default function AdjustPanel() {
-  const { current, commit } = useEditor()
+  const { current, commit, setPreviewOverride } = useEditor()
   const [s, setS] = useState<AdjustSettings>(NEUTRAL_ADJUST)
+  // Mirrors `s` for reads inside event handlers. A real mouse release fires
+  // both `pointerup` and `mouseup`; whichever handler runs first commits and
+  // the other must see the same up-to-date values regardless of whether
+  // React has re-rendered (and thus refreshed handler closures) in between —
+  // a plain `useState` read here could still be stale, a ref never is.
+  const draftRef = useRef<AdjustSettings>(NEUTRAL_ADJUST)
+  // The image the slider values are relative to — captured once when a drag
+  // starts, so mid-drag re-renders don't keep re-reading a moving target.
+  const baseRef = useRef<Pixels | null>(null)
 
-  function apply() {
-    const p = current()
-    if (p) commit(applyAdjustments(p, s))
+  // Discard an in-progress (uncommitted) preview if this panel goes away
+  // mid-drag, e.g. the user switches tools without releasing the slider.
+  useEffect(() => () => setPreviewOverride(null), [setPreviewOverride])
+
+  function handleChange(key: keyof AdjustSettings, value: number) {
+    if (!baseRef.current) baseRef.current = current()
+    const base = baseRef.current
+    if (!base) return
+    const next = { ...draftRef.current, [key]: value }
+    draftRef.current = next
+    setS(next)
+    setPreviewOverride(applyAdjustments(base, next))
+  }
+
+  function commitDrag() {
+    const base = baseRef.current
+    if (!base) return
+    commit(applyAdjustments(base, draftRef.current))
+    setPreviewOverride(null)
+    baseRef.current = null
+    draftRef.current = NEUTRAL_ADJUST
     setS(NEUTRAL_ADJUST)
   }
+
   function auto() {
     const p = current()
     if (p) commit(autoEnhance(p))
@@ -45,19 +74,16 @@ export default function AdjustPanel() {
               min={f.min}
               max={100}
               value={s[f.key]}
-              onChange={(e) => setS({ ...s, [f.key]: Number(e.target.value) })}
+              onChange={(e) => handleChange(f.key, Number(e.target.value))}
+              onPointerUp={commitDrag}
+              onMouseUp={commitDrag}
+              onTouchEnd={commitDrag}
+              onKeyUp={commitDrag}
               className="w-full"
             />
           </label>
         ))}
       </div>
-
-      <button
-        onClick={apply}
-        className="w-full rounded-sm bg-clay py-2 text-sm font-medium text-ink transition-colors duration-150 hover:bg-clay-strong"
-      >
-        Применить
-      </button>
     </div>
   )
 }
