@@ -1,4 +1,4 @@
-import { useRef, useState, PointerEvent } from 'react'
+import { useEffect, useRef, useState, PointerEvent } from 'react'
 import { useEditor } from '../state/editorStore'
 import { pixelsToCanvas } from '../core/canvas'
 import { createMask, paintMask, inpaint, Mask } from '../modules/heal'
@@ -6,6 +6,7 @@ import { createMask, paintMask, inpaint, Mask } from '../modules/heal'
 export default function HealPanel() {
   const { current, commit, busy, setBusy } = useEditor()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const mountedCanvasRef = useRef<HTMLCanvasElement | null>(null)
   const maskRef = useRef<Mask | null>(null)
   const [radius, setRadius] = useState(8)
   const [error, setError] = useState<string | null>(null)
@@ -13,7 +14,7 @@ export default function HealPanel() {
   function ensure(): HTMLCanvasElement | null {
     const p = current()
     if (!p) return null
-    if (!canvasRef.current || maskRef.current?.width !== p.width) {
+    if (!canvasRef.current || maskRef.current?.width !== p.width || maskRef.current?.height !== p.height) {
       const c = pixelsToCanvas(p)
       canvasRef.current = c
       maskRef.current = createMask(p.width, p.height)
@@ -23,14 +24,14 @@ export default function HealPanel() {
 
   function draw(e: PointerEvent<HTMLCanvasElement>) {
     if (e.buttons !== 1) return
-    const c = canvasRef.current
+    const el = mountedCanvasRef.current
     const mask = maskRef.current
-    if (!c || !mask) return
-    const rect = c.getBoundingClientRect()
-    const x = Math.round(((e.clientX - rect.left) / rect.width) * c.width)
-    const y = Math.round(((e.clientY - rect.top) / rect.height) * c.height)
+    if (!el || !mask) return
+    const rect = el.getBoundingClientRect()
+    const x = Math.round(((e.clientX - rect.left) / rect.width) * el.width)
+    const y = Math.round(((e.clientY - rect.top) / rect.height) * el.height)
     paintMask(mask, x, y, radius)
-    const ctx = c.getContext('2d')!
+    const ctx = el.getContext('2d')!
     ctx.fillStyle = 'rgba(255,0,0,0.5)'
     ctx.beginPath()
     ctx.arc(x, y, radius, 0, Math.PI * 2)
@@ -57,6 +58,15 @@ export default function HealPanel() {
   }
 
   const c = ensure()
+
+  useEffect(() => {
+    const el = mountedCanvasRef.current
+    if (!el || !c) return
+    el.width = c.width
+    el.height = c.height
+    el.getContext('2d')!.drawImage(c, 0, 0)
+  }, [c])
+
   return (
     <div className="space-y-3">
       <label className="block text-sm">Размер кисти: {radius}
@@ -64,7 +74,7 @@ export default function HealPanel() {
       </label>
       {c && (
         <canvas
-          ref={(el) => { if (el && c) { el.width = c.width; el.height = c.height; el.getContext('2d')!.drawImage(c, 0, 0) } }}
+          ref={mountedCanvasRef}
           onPointerMove={draw}
           className="max-h-[50vh] max-w-full cursor-crosshair rounded border border-neutral-700"
         />
