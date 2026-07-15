@@ -6,7 +6,28 @@
 
 **Architecture:** Всё ядро обработки — чистые функции над типом `Pixels` (`{ data, width, height }`), не зависящие от DOM и потому тестируемые в Node. UI-компоненты и «тяжёлые» модули (фон, inpaint, экспорт) — тонкие обёртки поверх этого ядра. Единый источник истины — zustand-стор с историей `History<Pixels>` (undo/redo). Инструменты не знают друг о друге: читают текущее изображение из стора и коммитят новое.
 
-**Tech Stack:** Vite + React 18 + TypeScript + Tailwind CSS 3, zustand (стор), Vitest (тесты), `@imgly/background-removal` (удаление фона, WASM), `@techstark/opencv-js` (inpaint).
+**Tech Stack:** Vite + React 18 + TypeScript + Tailwind CSS 3, zustand (стор), Vitest (тесты), `@imgly/background-removal` (удаление фона, WASM), ~~`@techstark/opencv-js` (inpaint)~~ — **см. addendum ниже: заменён на собственный алгоритм.**
+
+## Addendum (после Task 12): замена `@techstark/opencv-js`
+
+При ручной проверке в реальном браузере (после исправления бага координат в
+`HealPanel.tsx`, commit `bf2d645`) обнаружилось, что `@techstark/opencv-js`
+(версии `4.10.0-release.1` и `4.9.0-release.3`) не инициализируется — промис
+готовности модуля не резолвится за 90+ секунд ни в браузере, ни в Node. Это
+делает лечащую кисть полностью нерабочей независимо от UI-кода.
+
+По решению пользователя `src/modules/heal.ts` переписан (commit `29d4d9d`) на
+собственный чистый JS-алгоритм диффузии (bounding-box-limited Gauss-Seidel
+relaxation, приближение уравнения Лапласа) без внешних зависимостей — той же
+формы `inpaint(p: Pixels, mask: Mask): Promise<Pixels>`, с тем же контрактом
+`EMPTY_MASK`. Зависимость `@techstark/opencv-js` удалена из `package.json`.
+Дизайн-спека (`docs/superpowers/specs/2026-07-14-photo-editor-design.md`)
+обновлена соответственно.
+
+Тексты Task 9 и Task 12 ниже (включая File Structure и упоминания opencv)
+оставлены как есть для истории хода разработки — они не отражают финальную
+реализацию. Актуальный код: `src/modules/heal.ts`. Актуальные тесты:
+`tests/modules/heal.test.ts` (полностью реальные, без моков opencv).
 
 ## Global Constraints
 
