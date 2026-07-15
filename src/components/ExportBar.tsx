@@ -6,10 +6,17 @@ export default function ExportBar() {
   const current = useEditor((s) => s.current)
   const [format, setFormat] = useState<ExportFormat>('png')
   const [quality, setQuality] = useState(0.92)
+  const [error, setError] = useState<string | null>(null)
 
   async function save() {
     const p = current()
-    if (p) await exportImage(p, format, quality)
+    if (!p) return
+    setError(null)
+    try {
+      await exportImage(p, format, quality)
+    } catch {
+      setError('Не удалось сохранить файл. Попробуйте ещё раз.')
+    }
   }
 
   return (
@@ -22,6 +29,7 @@ export default function ExportBar() {
         <input type="range" min={0.3} max={1} step={0.01} value={quality} onChange={(e) => setQuality(Number(e.target.value))} />
       )}
       <button onClick={save} className="rounded bg-emerald-600 px-4 py-2">Скачать</button>
+      {error && <p className="text-red-400 text-sm">{error}</p>}
     </div>
   )
 }
