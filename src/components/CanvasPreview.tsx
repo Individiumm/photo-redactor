@@ -13,9 +13,13 @@ export default function CanvasPreview() {
   useEffect(() => {
     if (!ref.current || !shown) return
     const canvas = pixelsToCanvas(shown)
-    canvas.className = 'max-h-[70vh] max-w-full object-contain rounded-lg shadow-lg'
+    canvas.className = 'max-h-[68vh] max-w-full object-contain rounded-sm'
     ref.current.replaceChildren(canvas)
   }, [shown])
 
-  return <div ref={ref} className="flex items-center justify-center" />
+  return (
+    <div className="flex min-h-[40vh] items-center justify-center rounded-md border border-paper/10 bg-ink-raised/50 p-6 md:p-10">
+      <div ref={ref} className="flex items-center justify-center drop-shadow-[0_20px_40px_rgba(0,0,0,0.45)]" />
+    </div>
+  )
 }

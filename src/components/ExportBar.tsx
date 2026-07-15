@@ -20,16 +20,35 @@ export default function ExportBar() {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <select value={format} onChange={(e) => setFormat(e.target.value as ExportFormat)} className="rounded bg-neutral-800 px-2 py-1">
-        <option value="png">PNG</option>
-        <option value="jpeg">JPG</option>
-      </select>
-      {format === 'jpeg' && (
-        <input type="range" min={0.3} max={1} step={0.01} value={quality} onChange={(e) => setQuality(Number(e.target.value))} />
-      )}
-      <button onClick={save} className="rounded bg-emerald-600 px-4 py-2">Скачать</button>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+    <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
+        <select
+          value={format}
+          onChange={(e) => setFormat(e.target.value as ExportFormat)}
+          className="rounded-sm border border-paper/15 bg-transparent px-2 py-1.5 text-sm text-paper/75"
+        >
+          <option className="bg-ink-raised" value="png">PNG</option>
+          <option className="bg-ink-raised" value="jpeg">JPG</option>
+        </select>
+        {format === 'jpeg' && (
+          <input
+            type="range"
+            min={0.3}
+            max={1}
+            step={0.01}
+            value={quality}
+            onChange={(e) => setQuality(Number(e.target.value))}
+            className="w-20"
+          />
+        )}
+      </div>
+      <button
+        onClick={save}
+        className="rounded-sm bg-clay px-5 py-1.5 text-sm font-medium text-ink transition-colors duration-150 hover:bg-clay-strong"
+      >
+        Скачать
+      </button>
+      {error && <p className="text-sm text-coral">{error}</p>}
     </div>
   )
 }

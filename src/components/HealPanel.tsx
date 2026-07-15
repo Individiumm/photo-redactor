@@ -32,7 +32,7 @@ export default function HealPanel() {
     const y = Math.round(((e.clientY - rect.top) / rect.height) * el.height)
     paintMask(mask, x, y, radius)
     const ctx = el.getContext('2d')!
-    ctx.fillStyle = 'rgba(255,0,0,0.5)'
+    ctx.fillStyle = 'rgba(201, 138, 84, 0.55)'
     ctx.beginPath()
     ctx.arc(x, y, radius, 0, Math.PI * 2)
     ctx.fill()
@@ -68,21 +68,39 @@ export default function HealPanel() {
   }, [c])
 
   return (
-    <div className="space-y-3">
-      <label className="block text-sm">Размер кисти: {radius}
-        <input type="range" min={2} max={40} value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="w-full" />
+    <div className="space-y-4">
+      <label className="block">
+        <div className="mb-1.5 flex items-baseline justify-between text-xs uppercase tracking-wider text-paper/40">
+          <span>Размер кисти</span>
+          <span className="tabular-nums text-clay-strong/90">{radius}</span>
+        </div>
+        <input
+          type="range"
+          min={2}
+          max={40}
+          value={radius}
+          onChange={(e) => setRadius(Number(e.target.value))}
+          className="w-full"
+        />
       </label>
+
       {c && (
         <canvas
           ref={mountedCanvasRef}
           onPointerMove={draw}
-          className="max-h-[50vh] max-w-full cursor-crosshair rounded border border-neutral-700"
+          className="max-h-[50vh] w-full cursor-crosshair rounded-sm border border-paper/10"
         />
       )}
-      <button disabled={busy} onClick={apply} className="w-full rounded bg-indigo-600 py-2 disabled:opacity-50">
+
+      <button
+        disabled={busy}
+        onClick={apply}
+        className="w-full rounded-sm bg-clay py-2 text-sm font-medium text-ink transition-colors duration-150 hover:bg-clay-strong disabled:opacity-40"
+      >
         {busy ? 'Обработка…' : 'Убрать закрашенное'}
       </button>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+
+      {error && <p className="text-sm text-coral">{error}</p>}
     </div>
   )
 }

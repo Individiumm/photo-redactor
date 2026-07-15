@@ -25,19 +25,39 @@ export default function AdjustPanel() {
   }
 
   return (
-    <div className="space-y-3">
-      <button onClick={auto} className="w-full rounded bg-emerald-600 py-2">Авто-улучшение</button>
-      {FIELDS.map((f) => (
-        <label key={f.key} className="block text-sm">
-          {f.label}: {s[f.key]}
-          <input
-            type="range" min={f.min} max={100} value={s[f.key]}
-            onChange={(e) => setS({ ...s, [f.key]: Number(e.target.value) })}
-            className="w-full"
-          />
-        </label>
-      ))}
-      <button onClick={apply} className="w-full rounded bg-indigo-600 py-2">Применить</button>
+    <div className="space-y-5">
+      <button
+        onClick={auto}
+        className="w-full rounded-sm border border-paper/15 py-2 text-sm text-paper/80 transition-colors duration-150 hover:border-paper/30 hover:bg-paper/5"
+      >
+        Авто-улучшение
+      </button>
+
+      <div className="space-y-4">
+        {FIELDS.map((f) => (
+          <label key={f.key} className="block">
+            <div className="mb-1.5 flex items-baseline justify-between text-xs uppercase tracking-wider text-paper/40">
+              <span>{f.label}</span>
+              <span className="tabular-nums text-clay-strong/90">{s[f.key]}</span>
+            </div>
+            <input
+              type="range"
+              min={f.min}
+              max={100}
+              value={s[f.key]}
+              onChange={(e) => setS({ ...s, [f.key]: Number(e.target.value) })}
+              className="w-full"
+            />
+          </label>
+        ))}
+      </div>
+
+      <button
+        onClick={apply}
+        className="w-full rounded-sm bg-clay py-2 text-sm font-medium text-ink transition-colors duration-150 hover:bg-clay-strong"
+      >
+        Применить
+      </button>
     </div>
   )
 }
