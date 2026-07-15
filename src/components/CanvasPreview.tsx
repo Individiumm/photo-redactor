@@ -72,7 +72,7 @@ export default function CanvasPreview() {
 
         <div
           className={showCompare ? 'pointer-events-none absolute inset-0 overflow-hidden rounded-sm' : ''}
-          style={showCompare ? { clipPath: `inset(0 ${100 - split}% 0 0)` } : undefined}
+          style={showCompare ? { clipPath: `inset(0 0 0 ${split}%)` } : undefined}
         >
           <canvas
             ref={afterRef}
