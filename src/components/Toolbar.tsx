@@ -43,7 +43,7 @@ function EyeIcon() {
 }
 
 export default function Toolbar() {
-  const { activeTool, setTool, history, undo, redo, resetToOriginal, showBefore, setShowBefore } =
+  const { activeTool, setTool, history, undo, redo, resetToOriginal, compareMode, setCompareMode } =
     useEditor()
 
   return (
@@ -90,12 +90,10 @@ export default function Toolbar() {
         </button>
         <span className="mx-1 h-4 w-px bg-paper/10" />
         <button
-          onMouseDown={() => setShowBefore(true)}
-          onMouseUp={() => setShowBefore(false)}
-          onMouseLeave={() => setShowBefore(false)}
-          title="Показать «до»"
+          onClick={() => setCompareMode(!compareMode)}
+          title="Сравнить до/после"
           className={`flex items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs transition-colors duration-150 ${
-            showBefore ? 'bg-clay/15 text-clay-strong' : 'hover:bg-paper/5 hover:text-paper'
+            compareMode ? 'bg-clay/15 text-clay-strong' : 'hover:bg-paper/5 hover:text-paper'
           }`}
         >
           <EyeIcon />
