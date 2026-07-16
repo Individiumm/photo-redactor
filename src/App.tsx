@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useEditor } from './state/editorStore'
 import Uploader from './components/Uploader'
 import CanvasPreview from './components/CanvasPreview'
@@ -8,10 +9,17 @@ import BackgroundPanel from './components/BackgroundPanel'
 import HealPanel from './components/HealPanel'
 import TransformPanel from './components/TransformPanel'
 import ExportBar from './components/ExportBar'
+import BatchView from './components/BatchView'
+import RestorePrompt from './components/RestorePrompt'
+import { useSessionRestore } from './state/persistenceSync'
+
+type Mode = 'editor' | 'batch'
 
 export default function App() {
   const hasImage = useEditor((s) => s.history !== null)
   const tool = useEditor((s) => s.activeTool)
+  const [mode, setMode] = useState<Mode>('editor')
+  const restore = useSessionRestore()
 
   return (
     <div className="min-h-screen">
@@ -19,14 +27,36 @@ export default function App() {
         <header className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-paper/10 pb-6 animate-rise-in">
           <div>
             <p className="text-[11px] uppercase tracking-[0.28em] text-paper/40">Домашняя фотостудия</p>
-            <h1 className="mt-1 font-display text-3xl italic text-paper md:text-4xl">
-              Фоторедактор
-            </h1>
+            <h1 className="mt-1 font-display text-3xl italic text-paper md:text-4xl">Фоторедактор</h1>
           </div>
-          {hasImage && <ExportBar />}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex gap-1">
+              <button
+                onClick={() => setMode('editor')}
+                className={`rounded-sm px-3 py-1.5 text-sm transition-colors duration-150 ${
+                  mode === 'editor' ? 'bg-clay/15 text-clay-strong' : 'text-paper/55 hover:bg-paper/5'
+                }`}
+              >
+                Редактор
+              </button>
+              <button
+                onClick={() => setMode('batch')}
+                className={`rounded-sm px-3 py-1.5 text-sm transition-colors duration-150 ${
+                  mode === 'batch' ? 'bg-clay/15 text-clay-strong' : 'text-paper/55 hover:bg-paper/5'
+                }`}
+              >
+                Пакетная обработка
+              </button>
+            </div>
+            {mode === 'editor' && hasImage && <ExportBar />}
+          </div>
         </header>
 
-        {!hasImage ? (
+        {mode === 'batch' ? (
+          <BatchView />
+        ) : restore.status === 'checking' ? null : restore.status === 'found' ? (
+          <RestorePrompt onRestore={restore.accept} onDiscard={restore.discard} />
+        ) : !hasImage ? (
           <Uploader />
         ) : (
           <div className="flex flex-col gap-6">
